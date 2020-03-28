@@ -4,13 +4,14 @@ import csv
 from datetime import datetime, date, timedelta
 import urllib.request
 
-def get_data():
+def get_data(days_back=1):
     summary_url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{}.csv'.format(
         datetime.today().strftime('%m-%d-%Y'))
     try:
         urllib.request.urlopen(summary_url)
     except:
-        yesterday = date.today() - timedelta(days=1)
+        #if no update exists for today, go to yesterday...if that fails, plug in days back until you get data
+        yesterday = date.today() - timedelta(days=days_back)
         summary_url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{}.csv'.format(
             yesterday.strftime('%m-%d-%Y'))
     with requests.Session() as s:
@@ -18,6 +19,7 @@ def get_data():
         decoded_content = download.content.decode('utf-8')
         reader = csv.DictReader(decoded_content.splitlines(), delimiter=',')
         return reader
+
 
 def get_country_metric(metric_type,country):
     metric_arr = np.array([row[metric_type] for row in summary if row['Country_Region'] == country]).astype(np.float)
