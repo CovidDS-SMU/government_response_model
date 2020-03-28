@@ -9,20 +9,26 @@ import csv
 #collect data
 api = CovId19Data(force=False)
 res = api.get_all_records_by_country()
-with open(os.getcwd()+'\Data\democracy_index_2019_table.csv', mode='r') as f:
+with open(os.getcwd()+'/Data/democracy_index_2019_table.csv', mode='r') as f:
     reader = csv.reader(f)
     next(reader)
     govt = {rows[0]:rows[1:] for rows in reader}
 
 #basic regression against rates, since not all countries report their rates we will need to match first
-#reports = [res[x]['label'] for x in res.keys()]
+reports = [x for x in govt.keys()]
 dem_idx = np.array([govt[x][0] for x in govt.keys()]).astype(np.float).reshape(-1,1)
-conf = np.array([res[x]['confirmed'] for x in res.keys()])
-conf = np.append(conf, np.median(conf))
-death = np.array([res[x]['deaths'] for x in res.keys()])
-recv = np.array([res[x]['recovered'] for x in res.keys()])
 
-reg_conf = lr().fit(dem_idx, conf)
+conf = np.array([res[x]['confirmed'] for x in res.keys() if res[x]['label'] in reports])
+log_conf = np.log(conf)
+#conf = np.append(conf, np.median(conf))
+death = np.array([res[x]['deaths'] for x in res.keys() if res[x]['label'] in reports])
+#death = np.log(death)
+recv = np.array([res[x]['recovered'] for x in res.keys() if res[x]['label'] in reports])
+
+#plt.hist(recv, bins='auto')
+#plt.show()
+
+reg_conf = lr().fit(dem_idx, log_conf)
 print(reg_conf.score(dem_idx, conf))
 
 # Split the data into training/testing sets
@@ -50,9 +56,3 @@ print(reg_conf.score(dem_idx, conf))
 
 # Plot outputs
 #plt.scatter(dem_test, conf_test,  color='black')
-plt.plot(dem_idx, color='blue', linewidth=3)
-plt.plot(conf, color='yellow', linewidth=3)
-plt.xticks(())
-plt.yticks(())
-
-plt.show()
