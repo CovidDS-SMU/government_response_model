@@ -4,6 +4,7 @@ import csv
 from datetime import datetime, date, timedelta
 import urllib.request
 import pandas as pd
+import os
 
 def get_data(days_back=1):
     summary_url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{}.csv'.format(
@@ -52,3 +53,8 @@ try:
     global_recovered_ts = pd.read_csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
 except:
     print('Recovered time series data has moved, check URL')
+
+asia_summary = pd.read_csv(os.getcwd()+'/Data/asia_health_summary.csv')
+asia_hospital = pd.read_csv(os.getcwd()+'/Data/asia_hospital_data.csv')
+us_hospital = pd.read_csv(os.getcwd()+'/Data/us_hospital_summary.csv')
+print(us_hospital)
