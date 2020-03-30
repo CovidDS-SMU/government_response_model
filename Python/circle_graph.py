@@ -58,6 +58,27 @@ asia_summary = pd.read_csv(os.getcwd()+'/Data/asia_health_summary.csv')
 asia_hospital = pd.read_csv(os.getcwd()+'/Data/asia_hospital_data.csv')
 us_hospital = pd.read_csv(os.getcwd()+'/Data/us_hospital_summary.csv')
 
+# save dataframes for confirmed, deaths, and recovered for just US and china
+china_confirmed_ts = pd.DataFrame(global_confirmed_ts[global_confirmed_ts['Country/Region'] == 'China'].loc[:,'1/22/20':].sum())
+china_deaths_ts = pd.DataFrame(global_deaths_ts[global_deaths_ts['Country/Region'] == 'China'].loc[:,'1/22/20':].sum())
+china_recovered_ts = pd.DataFrame(global_recovered_ts[global_recovered_ts['Country/Region'] == 'China'].loc[:,'1/22/20':].sum())
+us_confirmed_ts = global_confirmed_ts[global_confirmed_ts['Country/Region'] == 'US'].loc[:,'1/22/20':].T
+us_deaths_ts = global_deaths_ts[global_deaths_ts['Country/Region'] == 'US'].loc[:,'1/22/20':].T
+us_recovered_ts = global_recovered_ts[global_recovered_ts['Country/Region'] == 'US'].loc[:,'1/22/20':].T
+
+# convert indices to datetime objects
+china_deaths_ts.index = pd.to_datetime(china_deaths_ts.index)
+china_recovered_ts.index = pd.to_datetime(china_recovered_ts.index)
+china_confirmed_ts.index = pd.to_datetime(china_confirmed_ts.index)
+us_deaths_ts.index = pd.to_datetime(us_deaths_ts.index)
+us_recovered_ts.index = pd.to_datetime(us_recovered_ts.index)
+us_confirmed_ts.index = pd.to_datetime(us_confirmed_ts.index)
+
+us_deaths_ts.columns = ['deaths']
+china_deaths_ts.columns = ['deaths']
+us_confirmed_ts.columns = ['confirmed']
+china_confirmed_ts.columns = ['confirmed']
+
 # get stats for us and china
 china = asia_hospital[asia_hospital['Country and Region '] == 'China ']
 # taking care of data entry issues
@@ -80,3 +101,17 @@ stats = [{'location': 'China',
           'beds_per_100000': icu_us.iloc[0]/(pop_us/100_000)}]
 icu_beds_df = pd.DataFrame(stats, columns=['location', 'icu_beds', 'pop', 'beds_per_100000'], index=['China', 'US'])
 icu_beds_df.to_csv('./Data/icu_beds.csv')
+
+stats = pd.read_csv('./Data/icu_beds.csv', index_col='location')
+# china took 88 days to reach icu capacity for # of confirmed cases
+# first china confirmed case nov 17
+# https://www.theguardian.com/world/2020/mar/13/first-covid-19-case-happened-in-november-china-government-records-show-report
+print(china_confirmed_ts[china_confirmed_ts['confirmed'] >= stats.loc['China','icu_beds']])
+print(pd.to_datetime('2020-02-13') - pd.to_datetime('2019-11-17'))
+# us took 66 days to reach icu capacity for # of confirmed cases
+print(us_confirmed_ts[us_confirmed_ts['confirmed'] >= stats.loc['United States','icu_beds']].head(1))
+print(pd.to_datetime('2020-03-28') - pd.to_datetime('2020-01-22'))
+
+#save for visualizations
+us_confirmed_ts.to_csv('./Data/us_confirmed_ts.csv')
+china_confirmed_ts.to_csv('./Data/china_confirmed_ts.csv')
