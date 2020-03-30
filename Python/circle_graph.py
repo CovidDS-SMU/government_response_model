@@ -57,4 +57,26 @@ except:
 asia_summary = pd.read_csv(os.getcwd()+'/Data/asia_health_summary.csv')
 asia_hospital = pd.read_csv(os.getcwd()+'/Data/asia_hospital_data.csv')
 us_hospital = pd.read_csv(os.getcwd()+'/Data/us_hospital_summary.csv')
-print(us_hospital)
+
+# get stats for us and china
+china = asia_hospital[asia_hospital['Country and Region '] == 'China ']
+# taking care of data entry issues
+icu_china = pd.to_numeric(china['ICU Beds '].str.replace(',', ''))
+# get us icu info
+icu_cols = [col for col in us_hospital.columns if 'intensive' in col.lower()]
+icu_us = sum([pd.to_numeric(us_hospital[col].str.replace(',', '')) for col in icu_cols])
+# population information
+pop_us = 329_444_452 #source: https://www.census.gov/popclock/
+pop_china = 1_401_972_080  #source: http://data.stats.gov.cn/english/
+
+# convert to df to plot in Tableau
+stats = [{'location': 'China',
+          'icu_beds': icu_china.iloc[0],
+          'pop': pop_china,
+          'beds_per_100000': icu_china.iloc[0]/(pop_china/100_000)},
+         {'location': 'United States',
+          'icu_beds': icu_us.iloc[0],
+          'pop': pop_us,
+          'beds_per_100000': icu_us.iloc[0]/(pop_us/100_000)}]
+icu_beds_df = pd.DataFrame(stats, columns=['location', 'icu_beds', 'pop', 'beds_per_100000'], index=['China', 'US'])
+icu_beds_df.to_csv('./Data/icu_beds.csv')
